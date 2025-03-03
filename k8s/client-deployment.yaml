@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-client
+  labels:
+    app: grpc-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-client
+  template:
+    metadata:
+      labels:
+        app: grpc-client
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: client
+        image: szlin/go-grpc-test-client:0.1.2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        env:
+        - name: SERVER_ADDR
+          value: "c-grpc-test-server.company.com:80"
+        - name: KEEPALIVE_TIME_SEC
+          value: "10"
+        - name: KEEPALIVE_TIMEOUT_SEC
+          value: "2"
+        - name: PERMIT_WITHOUT_STREAM
+          value: "true"
+        - name: PING_INTERVAL_SEC
+          value: "2"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"

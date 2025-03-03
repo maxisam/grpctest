@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-server
+  labels:
+    app: grpc-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-server
+  template:
+    metadata:
+      labels:
+        app: grpc-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: server
+        image: szlin/go-grpc-test-server:0.1.2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        ports:
+        - containerPort: 50051
+        env:
+        - name: SERVER_PORT
+          value: "50051"
+        - name: MAX_CONN_IDLE_SEC
+          value: "15"
+        - name: MAX_CONN_AGE_SEC
+          value: "30"
+        - name: MAX_CONN_AGE_GRACE_SEC
+          value: "5"
+        - name: KEEPALIVE_TIME_SEC
+          value: "5"
+        - name: KEEPALIVE_TIMEOUT_SEC
+          value: "1"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server
+spec:
+  selector:
+    app: grpc-server
+  ports:
+  - port: 50051
+    targetPort: 50051
+    protocol: TCP
+  type: ClusterIP

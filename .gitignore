@@ -1,0 +1,55 @@
+# Go binaries and executables
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+
+# Go workspace file
+go.work
+
+# Dependency directories
+/vendor/
+
+# Generated gRPC files
+# Don't ignore these as they should be committed for easier setup
+# *.pb.go
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.local
+
+# Docker related
+
+docker-compose.override.yml
+
+# Logs
+*.log
+
+# Build output
+/dist/
+/build/
+
+# Temporary files
+/tmp/
+/temp/
+
+# Kubernetes secrets
+*secret*.yaml
+*secrets*.yaml

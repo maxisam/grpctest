@@ -1,0 +1,39 @@
+# Binaries and executables
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go development
+/vendor/
+/go.work
+
+# Testing
+*.test
+*.out
+coverage.txt
+
+# Local development
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Kubernetes
+k8s/
+
+# Docker files (don't recursively copy)
+Dockerfile*
+docker-compose.yaml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Project-specific
+*.log
+setup.ps1
+README.md

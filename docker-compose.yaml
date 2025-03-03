@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "50051:50051"
+    environment:
+      - SERVER_PORT=50051
+      - MAX_CONN_IDLE_SEC=15
+      - MAX_CONN_AGE_SEC=30
+      - MAX_CONN_AGE_GRACE_SEC=5
+      - KEEPALIVE_TIME_SEC=5
+      - KEEPALIVE_TIMEOUT_SEC=1
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    depends_on:
+      - server
+    environment:
+      - SERVER_ADDR=server:50051
+      - KEEPALIVE_TIME_SEC=10
+      - KEEPALIVE_TIMEOUT_SEC=2
+      - PERMIT_WITHOUT_STREAM=true
+      - PING_INTERVAL_SEC=2
