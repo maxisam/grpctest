@@ -45,19 +45,68 @@ jobs:
       run: go build -v -o build/client.exe client/main.go
     
     - name: Zip Executables
-      run: Compress-Archive -Path build/server.exe, build/client.exe -DestinationPath builds.zip
+      run: Compress-Archive -Path build/server.exe, build/client.exe -DestinationPath windows-builds.zip
     
     - name: Upload Windows Builds
       uses: actions/upload-artifact@v4
       with:
         name: windows-executables
-        path: builds.zip
+        path: windows-builds.zip
+        retention-days: 7
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        check-latest: true
+    
+    - name: Install protoc
+      uses: arduino/setup-protoc@v3
+      with:
+        version: '29.3'
+    
+    - name: Install gRPC tools
+      run: |
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+    
+    - name: Generate gRPC code
+      run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
+        protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ping.proto
+    
+    - name: Get dependencies
+      run: go mod tidy
+    
+    - name: Build Server
+      run: go build -v -o build/server server/main.go
+    
+    - name: Build Client
+      run: go build -v -o build/client client/main.go
+    
+    - name: Set executable permissions
+      run: chmod +x build/server build/client
+    
+    - name: Tar Executables
+      run: tar -czvf ubuntu-builds.tar.gz -C build server client
+    
+    - name: Upload Ubuntu Builds
+      uses: actions/upload-artifact@v4
+      with:
+        name: ubuntu-executables
+        path: ubuntu-builds.tar.gz
         retention-days: 7
   
   # Optional: Add Docker image build job
   build-docker-images:
     runs-on: ubuntu-latest
-    needs: build-windows
+    needs: [build-windows, build-ubuntu]
     
     steps:
     - uses: actions/checkout@v4
@@ -99,7 +148,7 @@ jobs:
   create-release:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    needs: build-windows
+    needs: [build-windows, build-ubuntu]
     permissions:
       contents: write
     
@@ -111,11 +160,17 @@ jobs:
       with:
         name: windows-executables
     
+    - name: Download Ubuntu executables
+      uses: actions/download-artifact@v4
+      with:
+        name: ubuntu-executables
+    
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          builds.zip
+          windows-builds.zip
+          ubuntu-builds.tar.gz
         draft: false
         prerelease: false
         generate_release_notes: true
