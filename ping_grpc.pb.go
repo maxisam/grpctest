@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: ping.proto
 
-package __
+package grpctest
 
 import (
 	context "context"
@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PingService_Ping_FullMethodName = "/ping.PingService/Ping"
+	PingService_Ping_FullMethodName            = "/grpctest.PingService/Ping"
+	PingService_PingWithPayload_FullMethodName = "/grpctest.PingService/PingWithPayload"
 )
 
 // PingServiceClient is the client API for PingService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PingServiceClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	PingWithPayload(ctx context.Context, in *PayloadRequest, opts ...grpc.CallOption) (*PayloadResponse, error)
 }
 
 type pingServiceClient struct {
@@ -47,11 +49,22 @@ func (c *pingServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...g
 	return out, nil
 }
 
+func (c *pingServiceClient) PingWithPayload(ctx context.Context, in *PayloadRequest, opts ...grpc.CallOption) (*PayloadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PayloadResponse)
+	err := c.cc.Invoke(ctx, PingService_PingWithPayload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PingServiceServer is the server API for PingService service.
 // All implementations must embed UnimplementedPingServiceServer
 // for forward compatibility.
 type PingServiceServer interface {
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	PingWithPayload(context.Context, *PayloadRequest) (*PayloadResponse, error)
 	mustEmbedUnimplementedPingServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedPingServiceServer struct{}
 
 func (UnimplementedPingServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedPingServiceServer) PingWithPayload(context.Context, *PayloadRequest) (*PayloadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PingWithPayload not implemented")
 }
 func (UnimplementedPingServiceServer) mustEmbedUnimplementedPingServiceServer() {}
 func (UnimplementedPingServiceServer) testEmbeddedByValue()                     {}
@@ -104,16 +120,38 @@ func _PingService_Ping_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PingService_PingWithPayload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayloadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PingServiceServer).PingWithPayload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PingService_PingWithPayload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PingServiceServer).PingWithPayload(ctx, req.(*PayloadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PingService_ServiceDesc is the grpc.ServiceDesc for PingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PingService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ping.PingService",
+	ServiceName: "grpctest.PingService",
 	HandlerType: (*PingServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _PingService_Ping_Handler,
+		},
+		{
+			MethodName: "PingWithPayload",
+			Handler:    _PingService_PingWithPayload_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

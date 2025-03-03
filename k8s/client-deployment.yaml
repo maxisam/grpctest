@@ -20,7 +20,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: client
-        image: szlin/go-grpc-test-client:0.1.2
+        image: szlin/go-grpc-test-client:0.3.0
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
@@ -35,11 +35,17 @@ spec:
         - name: KEEPALIVE_TIME_SEC
           value: "10"
         - name: KEEPALIVE_TIMEOUT_SEC
-          value: "2"
+          value: "5"
         - name: PERMIT_WITHOUT_STREAM
-          value: "true"
+          value: "false"
         - name: PING_INTERVAL_SEC
           value: "2"
+        - name: USE_PAYLOAD
+          value: "true"
+        - name: PAYLOAD_SIZE_KB
+          value: "4.75"
+        - name: REQUEST_TIMEOUT_SEC
+          value: "100"
         resources:
           limits:
             cpu: "500m"

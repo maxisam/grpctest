@@ -1,10 +1,11 @@
 syntax = "proto3";
+package grpctest;
 
-package ping;
-option go_package = "."; // Generate in current directory, not in a subdirectory
+option go_package = ".;grpctest";
 
 service PingService {
-  rpc Ping (PingRequest) returns (PingResponse) {}
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc PingWithPayload(PayloadRequest) returns (PayloadResponse);
 }
 
 message PingRequest {
@@ -14,4 +15,18 @@ message PingRequest {
 message PingResponse {
   string message = 1;
   int64 timestamp = 2;
+  int32 delay_ms = 3;  // Actual delay in milliseconds
+}
+
+message PayloadRequest {
+  string message = 1;
+  float size_kb = 2;   // Requested payload size in KB (can be fractional like 1.5)
+}
+
+message PayloadResponse {
+  string message = 1;
+  int64 timestamp = 2;
+  float size_kb = 3;    // Actual size of payload in KB
+  int32 delay_ms = 4;   // Actual delay in milliseconds
+  bytes payload = 5;    // Variable size payload
 }

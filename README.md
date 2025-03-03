@@ -107,6 +107,15 @@ The Docker images and Kubernetes deployments include the following security feat
 - SecurityContext settings for Pod Security Standards compliance
 - Secure defaults for resource limits and requests
 
+## Performance Testing Features
+
+The service supports configurable response delays and variable payload sizes:
+
+- Simple ping method for basic connectivity testing
+- Payload method to test with configurable data sizes (supports fractional KB values like 1.5KB)
+- Configurable server-side artificial delays
+- Round-trip time reporting
+
 ## Kubernetes Deployment
 
 1. Push images to a registry accessible by your Kubernetes cluster:
@@ -139,6 +148,8 @@ Both server and client include configurable keep-alive parameters to maintain pe
 - MAX_CONN_AGE_GRACE_SEC: Grace period for max age in seconds (default: 5)
 - KEEPALIVE_TIME_SEC: Keepalive time in seconds (default: 5)
 - KEEPALIVE_TIMEOUT_SEC: Keepalive timeout in seconds (default: 1)
+- RESPONSE_DELAY_MS: Artificial delay in milliseconds (default: "0-100", supports range format "min-max" or fixed value)
+- MAX_PAYLOAD_SIZE_KB: Maximum payload size in KB (default: 5120, which is 5MB, supports fractional values)
 
 ### Client:
 - SERVER_ADDR: Address of the gRPC server (default: localhost:50051)
@@ -146,6 +157,21 @@ Both server and client include configurable keep-alive parameters to maintain pe
 - KEEPALIVE_TIMEOUT_SEC: Keepalive timeout in seconds (default: 2)
 - PERMIT_WITHOUT_STREAM: Permit keepalive without streams (default: true)
 - PING_INTERVAL_SEC: Interval between pings in seconds (default: 2)
+- USE_PAYLOAD: Use the payload test method instead of simple ping (default: false)
+- PAYLOAD_SIZE_KB: Payload size to request in KB (default: 1024, which is 1MB, supports fractional values)
+- REQUEST_TIMEOUT_SEC: Timeout for gRPC requests in seconds (default: 10)
+
+## Examples
+
+### Testing with a 1.5MB payload and a delay of 100-500ms:
+
+```bash
+# Server
+docker run -p 50051:50051 -e RESPONSE_DELAY_MS="100-500" -e MAX_PAYLOAD_SIZE_KB=5120.5 grpctest-server:latest
+
+# Client
+docker run -e SERVER_ADDR=host.docker.internal:50051 -e USE_PAYLOAD=true -e PAYLOAD_SIZE_KB=1536.5 -e REQUEST_TIMEOUT_SEC=30 grpctest-client:latest
+```
 
 ## Troubleshooting
 
